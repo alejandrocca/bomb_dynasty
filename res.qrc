@@ -1,0 +1,36 @@
+<RCC>
+    <qresource prefix="/sounds"/>
+    <qresource prefix="/sound"/>
+    <qresource prefix="/">
+        <file>gamefield_graphics/icons/bomb+1.jpg</file>
+        <file>gamefield_graphics/icons/freeze.jpg</file>
+        <file>gamefield_graphics/icons/ghost.jpg</file>
+        <file>gamefield_graphics/icons/mine.jpg</file>
+        <file>gamefield_graphics/icons/powerup.jpg</file>
+        <file>gamefield_graphics/icons/push.jpg</file>
+        <file>gamefield_graphics/icons/reverse.jpg</file>
+        <file>gamefield_graphics/icons/shield.jpg</file>
+        <file>gamefield_graphics/background.png</file>
+        <file>gamefield_graphics/bomb.png</file>
+        <file>gamefield_graphics/bombed.png</file>
+        <file>gamefield_graphics/freezebg.png</file>
+        <file>gamefield_graphics/gamefield.png</file>
+        <file>gamefield_graphics/hbeffect.png</file>
+        <file>gamefield_graphics/IMG_0447.PNG</file>
+        <file>gamefield_graphics/minegraphics.png</file>
+        <file>gamefield_graphics/p1.PNG</file>
+        <file>gamefield_graphics/p2.PNG</file>
+        <file>gamefield_graphics/Queen.png</file>
+        <file>gamefield_graphics/ribbons.png</file>
+        <file>gamefield_graphics/t.png</file>
+        <file>gamefield_graphics/transparent.png</file>
+        <file>gamefield_graphics/vbeffect.png</file>
+        <file>gamefield_graphics/wall.jpg</file>
+        <file>sound_effects/explosion.mp3</file>
+        <file>sound_effects/Five_Armies.mp3</file>
+        <file>sound_effects/icon.mp3</file>
+        <file>gamefield_graphics/doubleplayerpic.jpg</file>
+        <file>gamefield_graphics/practicepic.jpg</file>
+        <file>sound_effects/mine.mp3</file>
+    </qresource>
+</RCC>
