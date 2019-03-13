@@ -38,7 +38,6 @@ public:
      * accessors
      * @return int/bool data member
     */
-    int getAge() const{return age;}
     int getxpos() const{return xpos;}
     int getypos() const{return ypos;}
     int getpower() const {return power;}
@@ -63,7 +62,6 @@ private:
     // Backend Info
     int xpos;
     int ypos;
-    int age;
     int power=1;
     bool activated = false;
     bool placed = false;
@@ -95,7 +93,7 @@ bool is_nonactive(const Bomb& bomb);
 
 /**
  * @brief The Mine class
- * Similar to the Bomb class, a c++ API class that stores backend information(position and status)
+ * Similar to the Bomb class, a c++ API class that stores backend information(position, parent and status)
  * as well as acknowledgement of frontend graphics and interface.
  */
 class Mine{
@@ -130,8 +128,8 @@ private:
     QLabel* graphics;
 
     // Backend info
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
     bool activated = false;
     bool placed = false;
 

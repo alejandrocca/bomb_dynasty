@@ -4,11 +4,12 @@
 
 /**
  * @brief Bomb::Bomb
+ * Constructor of the Bomb class: initializes the graphics and positions of the bomb
  * @param <GameFrame2*> g - gameframe that owns the bomb object
  * @param <int> x - x position of the bomb
  * @param <int> y - y position of the bomb  `   `           `   `
  */
-Bomb::Bomb(GameFrame2* g, int x, int y) : game(g), xpos(x), ypos(y), age(3) {
+Bomb::Bomb(GameFrame2* g, int x, int y) : game(g), xpos(x), ypos(y) {
     bombgraphics = new QLabel;
     bombgraphics->setPixmap(*(g->bombmaps[0]));
     bombgraphics->setStyleSheet("QLabel{background-image:url(:/gamefield_graphics/t.png)}");
@@ -66,6 +67,13 @@ bool is_nonactive(const Bomb& bomb){
     return (bomb.if_activated() == false);
 }
 
+
+/**
+ * @brief Mine::Mine
+ * Constructor of the Mine class: initializes the graphics of the mine
+ * @param <GameFrame2*> g - gameframe that owns the mine object
+ * @param <Player*> p - player that owns the mine object
+ */
 Mine::Mine(GameFrame2* g, Player* p): g(g),p(p){
     graphics = new QLabel;
     QPixmap* temp = new QPixmap(":/gamefield_graphics/minegraphics.png");
