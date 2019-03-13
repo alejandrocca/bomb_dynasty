@@ -26,27 +26,26 @@ class GameFrame2 : public QWidget
 
 public:
     //helper function
-    QPair<int,int> future_position(Player* p, int dir);
-    bool hasObstacle(Player* p, int dir); //for player movement or bomb placement
+    QPair<int,int> future_position(Player* p, const int& dir);
+    bool hasObstacle(Player* p, const int& dir); //for player movement or bomb placement
     bool isNear(const Bomb& b) const;
-    Bomb* hasBomb(Player* p, int dir);
-    int explodeDist(Bomb* b, int dir);
-    void push_bombAt(Player* p, int dir);
+    Bomb* hasBomb(Player* p, const int& dir);
+    int explodeDist(Bomb* b, const int& dir);
+    void push_bombAt(Player* p, const int& dir);
+    void player_moves(Player* p, const int& dir);
+    void set_double_player(const bool&);
+    int rand_pos(){
+        return 70*(rand()%10);
+    }
 
     //constructor and destructor
-    explicit GameFrame2(bool twoplayer, int b_volume, int e_volume, QWidget *parent = nullptr);
+    explicit GameFrame2(const bool& twoplayer, const int& b_volume, const int& e_volume, QWidget *parent = nullptr);
     ~GameFrame2() override;
 
 
     void keyPressEvent(QKeyEvent* event) override;
-    void set_double_player(bool);
     Ui::GameFrame2 *ui;
-    int rand_pos(){
 
-        return 70*(rand()%10);
-    }
-
-    void player_moves(Player* p, int dir);
 
 
 public:
@@ -62,23 +61,78 @@ public:
     * connected to reset_game of gameframe and show() of welcome window
     */
     void quit_pressed();
-    void bgm_vol_changed(int value);
-    void effects_vol_changed(int value);
 
+    /**
+     * volume scroll box emits this signal
+     * connected to set the volume of bgm
+     * @param <const int&> value
+     */
+    void bgm_vol_changed(const int& value);
+
+    /**
+     * volume scroll box emits this signal
+     * connected to set the volume of effect sound
+     * @param <const int&> value
+     */
+    void effects_vol_changed(const int& value);
+
+    /**
+     * emitted when player touches powerup
+     * connected to release_effect(p,i)
+     * @param <Player*> p - player who touches
+     * @param <sepcialIcon*> i - the powerup being touched
+     */
     void effect_triggered(Player* p, specialIcon* i);
 
+    /**
+     * emitted when the bomb release key is pressed
+     * connected to place_bomb(p)
+     * @param <Player*> p - player who pressed the key
+     */
     void enter_pressed(Player* p);
-    void freeze_pressed(Player* p);
-    void bomb_placed(Bomb* b);
-    void explode_timer_out(Bomb* b);
-    void clear_timer_out(Bomb* b);
-    void bomb_exploded(Bomb* b);
-    void bomb_cleared(Bomb* b);
-    void player_attacked(Player* p);
+
+    /**
+     * emitted when the bomb release key is pressed to place mine
+     * connected to place_mine(p)
+     * @param p - player who pressed the key
+     */
     void mine_pressed(Player* p);
 
+    /**
+     * emitted when the bomb release key is pressed to freeze
+     * connected to freeze_around(p)
+     * @param p - player who pressed the key
+     */
+    void freeze_pressed(Player* p);
+
+    /**
+     * emitted when bomb is placed
+     * connected to start_timer(b) which explodes the bomb after timeout
+     * @param b - bomb being placed
+     */
+    void bomb_placed(Bomb* b);
+
+    /**
+     * emitted when explodeBomb is called (when start_timer is timeout)
+     * connected to bomb_explodes(b) and start_timer2(b) (explodes bomb and start clearing timer)
+     * @param b
+     */
+    void explode_timer_out(Bomb* b);
+
+    /**
+     * emitted when clearBomb is called (when start_timer2 is timeout)
+     * connected to clear_bomb(b)
+     * @param b
+     */
+    void clear_timer_out(Bomb* b);
 
 
+    /**
+     * emitted whenever Player p is attacked (by bomb or mine)
+     * connected to  end_game(p)
+     * @param p - player who got attacked
+     */
+    void player_attacked(Player* p);
 
 public slots:
     void toggle_menu();
@@ -93,25 +147,13 @@ public slots:
     void clear_bomb(Bomb* b);
     void end_game(Player* p);
     void place_mine(Player* p);
-
-
-
-
-private slots:
     void on_quit_game_clicked();
-
     void on_pushButton_clicked();
-
     void on_pushButton_2_clicked();
-
     void on_bgm_slider_valueChanged(int value);
-
     void on_effects_slider_valueChanged(int value);
-
     void npc_key_gen();
-
     void npc_moves();
-
     void remove_dead_timers();
 
 private:

@@ -21,7 +21,7 @@ bool isOutOfBounds(int xpos, int ypos){
  *        <int> dir - direction Player is facing
  * @return <QPair<int, int>> - a pair of int that contains the player's predicted position for the next movement
  */
-QPair<int,int> GameFrame2::future_position(Player* p, int dir){
+QPair<int,int> GameFrame2::future_position(Player* p, const int& dir){
     int future_xpos;
     int future_ypos;
     switch(dir){
@@ -74,7 +74,7 @@ QPair<int,int> GameFrame2::future_position(Player* p, int dir){
  * @param <Player*> dir - direction the player is going to
  * @return <bool> true if player is running out of bounds or running into a wall
  */
-bool GameFrame2::hasObstacle(Player* p, int dir){
+bool GameFrame2::hasObstacle(Player* p, const int& dir){
     QPair<int, int> future_pos = future_position(p,dir);
     int future_xpos=future_pos.first;
     int future_ypos=future_pos.second;
@@ -116,7 +116,7 @@ bool GameFrame2::hasObstacle(Player* p, int dir){
  * @return <Bomb*> pointer to bomb if there is a bomb ahead of player, NULL otherwise
  */
 
-Bomb* GameFrame2::hasBomb(Player* p, int dir){
+Bomb* GameFrame2::hasBomb(Player* p, const int& dir){
     QPair<int, int> future_pos = future_position(p,dir);
     int xpos=future_pos.first;
     int ypos=future_pos.second;
@@ -158,7 +158,7 @@ bool GameFrame2::isNear(const Bomb &b) const{
  * @param p
  * @param dir
  */
-void GameFrame2::player_moves(Player* p, int dir){
+void GameFrame2::player_moves(Player* p, const int& dir){
     //push bomb if able to
     if (hasBomb(p,dir)!=nullptr && p->get_push()==true)
         push_bombAt(p,dir);
@@ -208,7 +208,7 @@ void GameFrame2::player_moves(Player* p, int dir){
 }
 
 // Returns distance (in units of 70) of furthest grid within bomb power range that is not a wall at direction dir
-int GameFrame2::explodeDist(Bomb* b, int dir){
+int GameFrame2::explodeDist(Bomb* b, const int& dir){
     Player* temp = new Player(0,this);
     temp->set_xpos(b->getxpos());
     temp->set_ypos(b->getypos());
@@ -245,14 +245,14 @@ void GameFrame2::resume_icon_timers(){
 
 void GameFrame2::pause_ss_timers()
 {
-    for (int k=0;k<ss_timers.size();k++){
+    for (size_t k=0;k<ss_timers.size();k++){
         ss_timers[k].second = ss_timers[k].first->remainingTime();
         ss_timers[k].first->stop();
     }
 }
 
 void GameFrame2::resume_ss_timers(){
-    for (int k=0; k<ss_timers.size();k++){
+    for (size_t k=0; k<ss_timers.size();k++){
         ss_timers[k].first->start(ss_timers[k].second);
     }
 }
@@ -282,7 +282,7 @@ void GameFrame2::remove_dead_timers(){
  * might change to take in QMainWindow welcomepage as a param
  */
 
-GameFrame2::GameFrame2(bool twoplayer, int b_volume, int e_volume, QWidget *parent) :
+GameFrame2::GameFrame2(const bool& twoplayer, const int& b_volume, const int& e_volume, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GameFrame2),
     double_player_mode(twoplayer)
@@ -432,13 +432,12 @@ GameFrame2::GameFrame2(bool twoplayer, int b_volume, int e_volume, QWidget *pare
 
 
 
-        //connect(this, SIGNAL(effect_triggered(Player*, specialIcon*)), (ui->specialEffect1), SLOT(hide()));
-        connect(this, SIGNAL(effect_triggered(Player*, specialIcon*)), this, SLOT(release_effect(Player*, specialIcon*)));
+    connect(this, SIGNAL(effect_triggered(Player*, specialIcon*)), this, SLOT(release_effect(Player*, specialIcon*)));
 
-        connect(this, SIGNAL(freeze_pressed(Player*)), this, SLOT(freeze_around(Player*)));
-        connect(this, SIGNAL(mine_pressed(Player*)), this, SLOT(place_mine(Player*)));
+    connect(this, SIGNAL(freeze_pressed(Player*)), this, SLOT(freeze_around(Player*)));
+    connect(this, SIGNAL(mine_pressed(Player*)), this, SLOT(place_mine(Player*)));
 
-        connect(this, SIGNAL(player_attacked(Player*)), this, SLOT(end_game(Player*)));
+    connect(this, SIGNAL(player_attacked(Player*)), this, SLOT(end_game(Player*)));
 
 
 }
@@ -462,7 +461,7 @@ GameFrame2::~GameFrame2()
     delete explosion_sound;
     delete mine_sound;
     delete[] adj;
-    for (int k=0; k<ss_timers.size();k++){
+    for (size_t k=0; k<ss_timers.size();k++){
         delete ss_timers[k].first;
     }
 }
@@ -763,7 +762,7 @@ void GameFrame2::npc_moves(){
  * called when game is created by welcomepage
  */
 
-void GameFrame2::set_double_player(bool a){
+void GameFrame2::set_double_player(const bool& a){
     double_player_mode=a;
 }
 
@@ -1059,7 +1058,6 @@ void GameFrame2::bomb_explodes(Bomb* b){
    if(b->getxpos()/70 != 9)  add_edge(adj, b->getypos()/7 + b->getxpos()/70, b->getypos()/7 + b->getxpos()/70 + 1);
    if(b->getypos()/70 != 9) add_edge(adj, b->getypos()/7 + b->getxpos()/70, (b->getypos()/70 + 1)* 10 + b->getxpos()/70);
 
-    emit bomb_exploded(b);
 }
 
 void GameFrame2::clear_bomb(Bomb* b){
@@ -1125,7 +1123,7 @@ void GameFrame2::release_effect(Player* p, specialIcon* i){
         ui->specialEffect2->hide();
         ui->specialEffect2->move(700,700);
     }
-    int n = i->get_type();
+    size_t n = i->get_type();
     if (n == 0){
         // Bomb+1
         std::vector<Bomb>::iterator iter = std::find_if(p->bombs.begin(), p->bombs.end(), is_nonactive);
@@ -1353,7 +1351,7 @@ void GameFrame2::push_graphics::operator()(){
     parent.repaint();
 }
 
-void GameFrame2::push_bombAt(Player* p, int dir){
+void GameFrame2::push_bombAt(Player* p, const int& dir){
     QPair<int, int> future_pos = future_position(p,dir);
     int xpos=future_pos.first;
     int ypos=future_pos.second;
