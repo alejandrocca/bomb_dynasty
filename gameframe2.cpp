@@ -1,20 +1,202 @@
 ﻿#include "gameframe2.h"
 #include "ui_gameframe2.h"
 #include <QString>
-#include <map>
 
-//global helper function
-
+/****************global helper function****************/
 /**
  * @brief isOutOfBounds
- * @param <int> xpos, ypos
- * @return <bool> if position is out of bounds
+ * @param <int> xpos, ypos - positions being considered
+ * @return <bool> - true if position is out of bounds, false otherwise
  */
 bool isOutOfBounds(int xpos, int ypos){
     return (xpos>630||xpos<0||ypos>630||ypos<0);
 }
 
-//member helper function
+/****************constructor and destructor****************/
+/**
+ * @brief GameFrame2::GameFrame2
+ * @param twoplayer - two player mode, true if on
+ * @param b_volume - background volume set by WelcomePage sliders, synced with GameFrame2 sliders
+ * @param e_volume - effects volume set by WelcomePage sliders, synced with GF2 sliders
+ * @param parent , default = null
+ * inherits from QWidget object and GameFrame2 Ui
+ * called when WelcomePage start game button is clicked
+ * initializes game components and connects basic game maintenance signals and slots
+ */
+
+GameFrame2::GameFrame2(const bool& twoplayer, const int& b_volume, const int& e_volume, QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::GameFrame2),
+    double_player_mode(twoplayer)
+{
+    //set up UI
+    ui->setupUi(this);
+
+    /****************SOUND EFFECTS****************/
+    icon_sound=new QMediaPlayer();
+    icon_sound->setMedia(QUrl("qrc:/sound_effects/icon.mp3"));
+    icon_sound->setVolume(e_volume);
+
+    explosion_sound=new QMediaPlayer();
+    explosion_sound->setMedia(QUrl("qrc:/sound_effects/explosion.mp3"));
+    explosion_sound->setVolume(e_volume);
+
+    mine_sound=new QMediaPlayer();
+    mine_sound->setMedia(QUrl("qrc:/sound_effects/mine.mp3"));
+    mine_sound->setVolume(e_volume);
+
+    ui->bgm_slider->setValue(b_volume);
+    ui->effects_slider->setValue(e_volume);
+
+    /****************WALL & GRAPH INITIALIZATION****************/
+    // Initializing wall vector
+    {
+        walls.push_back(ui->wall1);
+        walls.push_back(ui->wall2);
+        walls.push_back(ui->wall3);
+        walls.push_back(ui->wall4);
+        walls.push_back(ui->wall5);
+        walls.push_back(ui->wall6);
+        walls.push_back(ui->wall7);
+        walls.push_back(ui->wall8);
+        walls.push_back(ui->wall9);
+        walls.push_back(ui->wall10);
+        walls.push_back(ui->wall11);
+        walls.push_back(ui->wall12);
+        walls.push_back(ui->wall13);
+        walls.push_back(ui->wall14);
+        walls.push_back(ui->wall15);
+        walls.push_back(ui->wall16);
+        walls.push_back(ui->wall17);
+        walls.push_back(ui->wall18);
+        walls.push_back(ui->wall19);
+        walls.push_back(ui->wall20);
+        walls.push_back(ui->wall21);
+        walls.push_back(ui->wall22);
+        walls.push_back(ui->wall23);
+        walls.push_back(ui->wall24);
+        walls.push_back(ui->wall25);
+        walls.push_back(ui->wall26);
+        walls.push_back(ui->wall27);
+        walls.push_back(ui->wall28);
+        walls.push_back(ui->wall29);
+        walls.push_back(ui->wall30);
+    }
+
+    // array of vectors is used to store the graph in the form of an adjacency list
+     adj = new vector<int>[100];
+
+    /** Creating graph given in the above diagram.
+     * add_edge function takes adjacency list, source
+     * and destination vertex as argument and forms
+     * an edge between them.
+    */
+    for(int y = 0; y < 10; ++y){
+        for(int x = 0; x < 10; ++x){
+           if (std::find(walls.begin(),walls.end(), ui->frame->childAt(x*70, y*70)) == walls.end()){
+              if(x!=9) add_edge(adj, y*10+x, y*10+x+1);
+              if(y!=9) add_edge(adj, y*10+x, (y+1)*10+x);
+            }
+        }
+    }
+
+    /****************POWER UP AND PLAYER STAT ICON INITIALIZATION****************/
+    // Initializing player stat icon graphics
+    {
+        ui->icon_3 ->hide();
+        ui->icon_4 ->hide();
+        ui->icon_5 ->hide();
+        ui->icon_6 ->hide();
+        ui->icon_7 ->hide();
+        ui->icon_8 ->hide();
+        ui->icon_9 ->hide();
+        ui->icon_10 ->hide();
+        ui->icon_11 ->hide();
+        ui->icon_13 ->hide();
+        ui->icon_14 ->hide();
+        ui->icon_16 ->hide();
+
+    }
+
+    //initialize game field powerup icons
+    i1 = new specialIcon;
+    i2 = new specialIcon;
+    ui->specialEffect1->hide();
+    ui->specialEffect2 -> hide();
+
+    //initialize drop power up timers
+    drop_icon_timer1 = new QTimer(this); //Timer for icon 1
+    connect(drop_icon_timer1, SIGNAL(timeout()), this, SLOT(drop_i1()));
+    drop_icon_timer1->start(15000);
+
+    drop_icon_timer2 = new QTimer(this); //Timer for icon 2
+    connect(drop_icon_timer2, SIGNAL(timeout()), this, SLOT(drop_i2()));
+    drop_icon_timer2->start(20000);
+
+    //initialize pause-correction timers
+    resume_icon_timer1.first = new QTimer(this);
+    resume_icon_timer1.first->setSingleShot(true);
+    resume_icon_timer1.second = 15000;
+    resume_icon_timer2.first = new QTimer(this);
+    resume_icon_timer2.first->setSingleShot(true);
+    resume_icon_timer2.second = 20000;
+
+    /****************PLAYER INITIALIZATION****************/
+    p1 = new Player(1,this);
+    p2 = new Player(2,this);
+    if (double_player_mode)
+        ui->groupBox_2->setTitle("Player 2");
+    else{
+        ui->groupBox_2->setTitle("Player 2 (Computer)");
+        npcTimer = new QTimer(this); // Timer for NPC movement
+        connect(npcTimer, SIGNAL(timeout()), this, SLOT(npc_moves()));
+        npcTimer->start(300);
+    }
+
+    /****************TIMER-INDEPENDENT SLOT CONNECTIONS****************/
+
+    //user-input signals and game maintenance signals
+    connect(this, SIGNAL(pause_pressed()), this, SLOT(toggle_menu()));
+    connect(this, SIGNAL(effect_triggered(Player*, specialIcon*)), this, SLOT(release_effect(Player*, specialIcon*)));
+    connect(this, SIGNAL(player_attacked(Player*)), this, SLOT(end_game(Player*)));
+
+    //player action signals
+    connect(this, SIGNAL(freeze_pressed(Player*)), this, SLOT(freeze_around(Player*)));
+    connect(this, SIGNAL(mine_pressed(Player*)), this, SLOT(place_mine(Player*)));
+
+    //bomb-specific signals
+    connect(this, SIGNAL(enter_pressed(Player*)), this, SLOT(place_bomb(Player*)));     // Player presses key -> player places bomb
+    connect(this, SIGNAL(bomb_placed(Bomb*)),this, SLOT(start_timer(Bomb*)));           // Bomb is placed     -> start explosion timer
+    connect(this, SIGNAL(explode_timer_out(Bomb*)), this, SLOT(start_timer2(Bomb*)));   // Explosion time out -> start clear timer
+    connect(this, SIGNAL(explode_timer_out(Bomb*)), this, SLOT(bomb_explodes(Bomb*)));  //                    -> explodes bomb
+    connect(this, SIGNAL(clear_timer_out(Bomb*)),this, SLOT(clear_bomb(Bomb*)));        // Clear time out     -> clears bomb
+
+    /****************UPDATE GAME****************/
+    //set current page as main game field
+    ui->gamefield->setCurrentIndex(1);
+    update();
+}
+
+/**
+ * @brief GameFrame2::~GameFrame2
+ * deletes ui object, players, specialIcons, media players, and graph
+ * called at the start of next game or at the destruction of WelcomePage
+ */
+
+GameFrame2::~GameFrame2()
+{
+    delete ui;
+    delete p1;
+    delete p2;
+    delete i1;
+    delete i2;
+    delete icon_sound;
+    delete explosion_sound;
+    delete mine_sound;
+    delete[] adj;
+}
+
+/****************member helper functionsr****************/
 /**
  * @brief GameFrame2::future_position
  * @param <Player*> p
@@ -167,19 +349,12 @@ void GameFrame2::player_moves(Player* p, const int& dir){
         if (!hasObstacle(p,dir)&&hasBomb(p,dir)==nullptr){
             p->move(dir);
             if(p->mine->if_placed()){
-
                 p->mine->graphics->show();
 
-                QTimer* timer = new QTimer(this);/*
-                connect(timer, SIGNAL(timeout()), p->mine->graphics, SLOT(hide()));*/
+                QTimer* timer = new QTimer(this);
+                connect(timer, SIGNAL(timeout()), p->mine->graphics, SLOT(hide()));
                 timer->callOnTimeout(deactivateMine(*this, p));
-                // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-                timer->setSingleShot(true);
-                timer->start(20000);
-                QPair<QTimer*,int> pair(timer,0);
-                ss_timers.push_back(pair);
-                //QTimer::singleShot(20000, p->mine->graphics, SLOT(hide()));
-                //QTimer::singleShot(20000, deactivateMine(*this, p));
+                start_ss_timer(timer, 20000);
             }
         }
     }
@@ -188,20 +363,12 @@ void GameFrame2::player_moves(Player* p, const int& dir){
         if (!isOutOfBounds(p->get_xpos()-p->get_speed(),p->get_ypos()) && hasBomb(p,dir)==nullptr){
             p->move(dir);
             if(p->mine->if_placed()){
-
                 p->mine->graphics->show();
 
                 QTimer* timer = new QTimer(this);
                 connect(timer, SIGNAL(timeout()), p->mine->graphics, SLOT(hide()));
                 timer->callOnTimeout(deactivateMine(*this, p));
-                // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-                timer->setSingleShot(true);
-                timer->start(20000);
-                QPair<QTimer*,int> pair(timer,0);
-                ss_timers.push_back(pair);
-
-                //QTimer::singleShot(20000, p->mine->graphics, SLOT(hide()));
-                //QTimer::singleShot(20000, deactivateMine(*this, p));
+                start_ss_timer(timer, 20000);
             }
          }
     }
@@ -230,30 +397,56 @@ int GameFrame2::explodeDist(Bomb* b, const int& dir){
 }
 
 void GameFrame2::pause_icon_timers(){
-    timer1_time_remaining=timer1->remainingTime();
-    timer1->stop();
-    timer2_time_remaining=timer2->remainingTime();
-    timer2->stop();
+    if (!resume_icon_timer1.first->isActive()){
+        resume_icon_timer1.second=drop_icon_timer1->remainingTime();
+        drop_icon_timer1->stop();
+    }
+    else {
+        resume_icon_timer1.second=resume_icon_timer1.first->remainingTime();
+        resume_icon_timer1.first->stop();
+    }
+    if (resume_icon_timer1.second < 0)
+        resume_icon_timer1.second =0;
+
+    if (!resume_icon_timer2.first->isActive()){
+        resume_icon_timer2.second=drop_icon_timer2->remainingTime();
+        drop_icon_timer2->stop();
+    }
+    else {
+        resume_icon_timer2.second=resume_icon_timer2.first->remainingTime();
+        resume_icon_timer2.first->stop();
+    }
+    if (resume_icon_timer2.second < 0)
+        resume_icon_timer2.second =0;
 }
 
 void GameFrame2::resume_icon_timers(){
-    QTimer::singleShot(timer1_time_remaining,timer1,SIGNAL(timeout()));
-    QTimer::singleShot(timer1_time_remaining, timer1, SLOT(start()));
-    QTimer::singleShot(timer2_time_remaining,timer2,SIGNAL(timeout()));
-    QTimer::singleShot(timer2_time_remaining, timer2, SLOT(start()));
+    resume_icon_timer1.first->start(resume_icon_timer1.second);
+    connect(resume_icon_timer1.first,SIGNAL(timeout()), drop_icon_timer1, SIGNAL(timeout()));
+    connect(resume_icon_timer1.first,SIGNAL(timeout()),drop_icon_timer1,SLOT(start()));
+
+    resume_icon_timer2.first->start(resume_icon_timer2.second);
+    connect(resume_icon_timer2.first,SIGNAL(timeout()), drop_icon_timer2, SIGNAL(timeout()));
+    connect(resume_icon_timer2.first,SIGNAL(timeout()),drop_icon_timer2,SLOT(start()));
 }
 
 void GameFrame2::pause_ss_timers()
 {
     for (size_t k=0;k<ss_timers.size();k++){
-        ss_timers[k].second = ss_timers[k].first->remainingTime();
-        ss_timers[k].first->stop();
+        if (ss_timers[k].first->isActive()){
+            ss_timers[k].second = ss_timers[k].first->remainingTime();
+            ss_timers[k].first->stop();
+        }
+        else {
+            ss_timers[k].second = 0;
+        }
     }
 }
 
 void GameFrame2::resume_ss_timers(){
     for (size_t k=0; k<ss_timers.size();k++){
-        ss_timers[k].first->start(ss_timers[k].second);
+        if (ss_timers[k].second > 0)
+            ss_timers[k].first->start(ss_timers[k].second);
     }
 }
 
@@ -270,201 +463,26 @@ void GameFrame2::remove_dead_timers(){
     }
 }
 
-/**
- * @brief GameFrame2::GameFrame2
- * @param twoplayer mode, true if on
- * @param parent , default = null,
- * inherits from QWidget object and GameFrame2 Ui
- * connect pause button pressed signal to toggle_menu
- * connect quit button pressed signal to resetting game stats
- * initializes player(s)
- *
- * might change to take in QMainWindow welcomepage as a param
- */
-
-GameFrame2::GameFrame2(const bool& twoplayer, const int& b_volume, const int& e_volume, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::GameFrame2),
-    double_player_mode(twoplayer)
-{
-    ui->setupUi(this);
-
-    //set up sound effect players
-    icon_sound=new QMediaPlayer();
-    icon_sound->setMedia(QUrl("qrc:/sound_effects/icon.mp3"));
-    icon_sound->setVolume(e_volume);
-
-    explosion_sound=new QMediaPlayer();
-    explosion_sound->setMedia(QUrl("qrc:/sound_effects/explosion.mp3"));
-    explosion_sound->setVolume(e_volume);
-
-    mine_sound=new QMediaPlayer();
-    mine_sound->setMedia(QUrl("qrc:/sound_effects/mine.mp3"));
-    mine_sound->setVolume(e_volume);
-
-    ui->bgm_slider->setValue(b_volume);
-    ui->effects_slider->setValue(e_volume);
-
-    ui->gamefield->setCurrentIndex(1);
-    update();
-
-    connect(this, SIGNAL(pause_pressed()), this, SLOT(toggle_menu()));
-
-    // Initializing wall vector, if condition just to be able to collapse block
-    if(true){
-        walls.push_back(ui->wall1);
-        walls.push_back(ui->wall2);
-        walls.push_back(ui->wall3);
-        walls.push_back(ui->wall4);
-        walls.push_back(ui->wall5);
-        walls.push_back(ui->wall6);
-        walls.push_back(ui->wall7);
-        walls.push_back(ui->wall8);
-        walls.push_back(ui->wall9);
-        walls.push_back(ui->wall10);
-        walls.push_back(ui->wall11);
-        walls.push_back(ui->wall12);
-        walls.push_back(ui->wall13);
-        walls.push_back(ui->wall14);
-        walls.push_back(ui->wall15);
-        walls.push_back(ui->wall16);
-        walls.push_back(ui->wall17);
-        walls.push_back(ui->wall18);
-        walls.push_back(ui->wall19);
-        walls.push_back(ui->wall20);
-        walls.push_back(ui->wall21);
-        walls.push_back(ui->wall22);
-        walls.push_back(ui->wall23);
-        walls.push_back(ui->wall24);
-        walls.push_back(ui->wall25);
-        walls.push_back(ui->wall26);
-        walls.push_back(ui->wall27);
-        walls.push_back(ui->wall28);
-        walls.push_back(ui->wall29);
-        walls.push_back(ui->wall30);
-    }
-
-
-    // array of vectors is used to store the graph
-    // in the form of an adjacency list
-
-     adj = new vector<int>[100];
-
-    // Creating graph given in the above diagram.
-    // add_edge function takes adjacency list, source
-    // and destination vertex as argument and forms
-    // an edge between them.
-    for(int y = 0; y < 10; ++y){
-        for(int x = 0; x < 10; ++x){
-           if (std::find(walls.begin(),walls.end(), ui->frame->childAt(x*70, y*70)) == walls.end()){
-              if(x!=9) add_edge(adj, y*10+x, y*10+x+1);
-              if(y!=9) add_edge(adj, y*10+x, (y+1)*10+x);
-            }
-        }
-    }
-
-
-    // Initializing icon vector
-    if(true){
-        ui->icon_3 ->hide();
-        ui->icon_4 ->hide();
-        ui->icon_5 ->hide();
-        ui->icon_6 ->hide();
-        ui->icon_7 ->hide();
-        ui->icon_8 ->hide();
-        ui->icon_9 ->hide();
-        ui->icon_10 ->hide();
-        ui->icon_11 ->hide();
-        ui->icon_13 ->hide();
-        ui->icon_14 ->hide();
-        ui->icon_16 ->hide();
-
-    }
-
-    //**** PLAYER **** PLAYER **** PLAYER **** PLAYER **** PLAYER ****
-    p1 = new Player(1,this);
-    p2 = new Player(2,this);
-    if (double_player_mode){
-        ui->groupBox_2->setTitle("Player 2");
-    }
-    else{
-//        ui->Player_2->hide();
-//        ui->p2_label->hide();
-//        ui->icon_12->hide();
-//        ui->icon_15->hide();
-//        ui->groupBox_2->hide();
-        ui->groupBox_2->setTitle("Player 2 (Computer)");
-        npcTimer = new QTimer(this); // Timer for NPC movement
-        connect(npcTimer, SIGNAL(timeout()), this, SLOT(npc_moves()));
-        npcTimer->start(300);
-
-
-    }
-
-    //**** BOMBS **** BOMBS **** BOMBS **** BOMBS **** BOMBS ****
-
-    connect(this, SIGNAL(enter_pressed(Player*)), this, SLOT(place_bomb(Player*)));     // Player presses key -> player places bomb
-    connect(this, SIGNAL(bomb_placed(Bomb*)),this, SLOT(start_timer(Bomb*)));           // Bomb is placed     -> start explosion timer
-    connect(this, SIGNAL(explode_timer_out(Bomb*)), this, SLOT(start_timer2(Bomb*)));   // Explosion time out -> start clear timer
-    connect(this, SIGNAL(explode_timer_out(Bomb*)), this, SLOT(bomb_explodes(Bomb*)));  //                    -> explodes bomb
-    connect(this, SIGNAL(clear_timer_out(Bomb*)),this, SLOT(clear_bomb(Bomb*)));        // Clear time out     -> clears bomb
-
-
-    //**** ICONS **** ICONS **** ICONS **** ICONS **** ICONS ****
-
-    i1 = new specialIcon;
-    i2 = new specialIcon;
-    ui->specialEffect1->hide();
-    ui->specialEffect2 -> hide();
-
-    timer1 = new QTimer(this); //Timer for icon 1
-    connect(timer1, SIGNAL(timeout()), this, SLOT(drop_i1()));
-    timer1->start(15000);
-
-    timer2 = new QTimer(this); //Timer for icon 2
-    connect(timer2, SIGNAL(timeout()), this, SLOT(drop_i2()));
-    timer2->start(20000);
-
-    removeTimer = new QTimer(this); // Timer for removing dead timers
-    connect(removeTimer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-    removeTimer -> start(3000);
-
-
-
-
-    connect(this, SIGNAL(effect_triggered(Player*, specialIcon*)), this, SLOT(release_effect(Player*, specialIcon*)));
-
-    connect(this, SIGNAL(freeze_pressed(Player*)), this, SLOT(freeze_around(Player*)));
-    connect(this, SIGNAL(mine_pressed(Player*)), this, SLOT(place_mine(Player*)));
-
-    connect(this, SIGNAL(player_attacked(Player*)), this, SLOT(end_game(Player*)));
-
+void GameFrame2::hide_status_icon(QLabel *icon, int time){
+    QTimer* t = new QTimer(this);
+    connect(t,SIGNAL(timeout()),icon,SLOT(hide()));
+    connect(t,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
+    t->setSingleShot(true);
+    t->start(time);
+    QPair<QTimer*,int> pair(t,0);
+    ss_timers.push_back(pair);
 
 }
-/**
- * @brief GameFrame2::~GameFrame2
- * deletes ui object, players, and media players
- */
 
-GameFrame2::~GameFrame2()
-{
-    delete ui;
-    delete p1;
-    delete p2;
-    delete i1;
-    delete i2;
-    delete timer1;
-    delete timer2;
-    delete npcTimer;
-    delete removeTimer;
-    delete icon_sound;
-    delete explosion_sound;
-    delete mine_sound;
-    delete[] adj;
-    for (size_t k=0; k<ss_timers.size();k++){
-        delete ss_timers[k].first;
-    }
+void GameFrame2::start_ss_timer(QTimer *t, int time){
+    connect(t,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
+    t->setSingleShot(true);
+    t->start(time);
+    QPair<QTimer*,int> pair(t,0);
+    ss_timers.push_back(pair);
 }
+
+
 
 /**
  * @brief GameFrame2::keyPressEvent
@@ -604,7 +622,7 @@ void GameFrame2::keyPressEvent(QKeyEvent* event){
 
     ui->frame->repaint();
 }
-
+/*
 void GameFrame2::npc_key_gen(){
     int i = rand()%5 + 1;
     if (i == LEFT){
@@ -629,7 +647,7 @@ void GameFrame2::npc_key_gen(){
         QCoreApplication::postEvent (this, event);
     }
 
-}
+}*/
 
 void GameFrame2::npc_moves(){
     if(paused == false){
@@ -817,33 +835,6 @@ void GameFrame2::place_mine(Player* p){
     if(p->get_ypos()/70 != 9) delete_edge(adj, p->get_ypos()/7 + p->get_xpos()/70, (p->get_ypos()/70 + 1)* 10 + p->get_xpos()/70);
 }
 
-void GameFrame2::deactivateMine::operator()(){
-    p->mine->set_activated(false);
-    p->mine->set_placed(false);
-    if (p->get_id()==1){
-        parent.ui->icon_8->hide();
-    }
-    else{
-        parent.ui->icon_16->hide();
-    }
-    if(p->mine->get_xpos()/70 != 9) add_edge(parent.adj, p->mine->get_ypos()/7 + p->mine->get_xpos()/70, p->mine->get_ypos()/7 + p->mine->get_xpos()/70 + 1);
-    if(p->mine->get_ypos()/70 != 9) add_edge(parent.adj, p->mine->get_ypos()/7 + p->mine->get_xpos()/70, (p->mine->get_ypos()/70 + 1)* 10 + p->mine->get_xpos()/70);
-
-}
-
-void GameFrame2::endFrozen::operator()(){
-    if(parent.p1->if_frozen()){
-        parent.p1->become_frozen(false);
-        parent.ui->Player_1->setStyleSheet("QLabel{background-image:url(:/gamefield_graphics/t.png)}");
-    }
-
-    if(parent.p2->if_frozen()){
-        parent.p2->become_frozen(false);
-        parent.ui->Player_2->setStyleSheet("QLabel{background-image:url(:/gamefield_graphics/t.png)}");
-    }
-
-}
-
 void GameFrame2::freeze_around(Player* p){
     p->set_freeze(false);
     if(p->get_id() == 1) ui->icon_3->hide();
@@ -951,13 +942,7 @@ void GameFrame2::freeze_around(Player* p){
     if (fp){
         QTimer* timer = new QTimer(this);
         timer->callOnTimeout(endFrozen(*this));
-        // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-        timer->setSingleShot(true);
-        timer->start(2000);
-        QPair<QTimer*,int> pair(timer,0);
-        ss_timers.push_back(pair);
-        //QTimer::singleShot(2000, this, endFrozen(*this));
-
+        start_ss_timer(timer, 2000);
         ui->frame->update();
     }
 
@@ -966,24 +951,14 @@ void GameFrame2::freeze_around(Player* p){
 void GameFrame2::start_timer(Bomb* b){
     QTimer* timer = new QTimer(this);
     timer->callOnTimeout(explodeBomb(*this, b));
-    // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-    timer->setSingleShot(true);
-    timer->start(3000);
-    QPair<QTimer*,int> pair(timer,0);
-    ss_timers.push_back(pair);
-    //QTimer::singleShot(3000, this, explodeBomb(*this, b));
+    start_ss_timer(timer, 3000);
 
 }
 
 void GameFrame2::start_timer2(Bomb* b){
     QTimer* timer = new QTimer(this);
     timer->callOnTimeout(clearBomb(*this,b));
-    // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-    timer->setSingleShot(true);
-    timer->start(1000);
-    QPair<QTimer*,int> pair(timer,0);
-    ss_timers.push_back(pair);
-    //QTimer::singleShot(1000, this, clearBomb(*this, b));
+    start_ss_timer(timer,1000);
 }
 
 void GameFrame2::bomb_explodes(Bomb* b){
@@ -1071,7 +1046,6 @@ void GameFrame2::clear_bomb(Bomb* b){
 }
 
 void GameFrame2::drop_i1(){
-
     int x = 0;
     int y = 0;
     size_t t = 0;
@@ -1085,7 +1059,7 @@ void GameFrame2::drop_i1(){
     i1->set_xpos(x);
     i1->set_ypos(y);
     i1->set_type(t);
-    ui->specialEffect1->setPixmap(*icons[t]);
+    ui->specialEffect1->setPixmap(icons[t]);
     ui->specialEffect1->setGeometry(x,y,70, 70);
     ui->specialEffect1->show();
 }
@@ -1104,7 +1078,7 @@ void GameFrame2::drop_i2(){
     i2->set_xpos(x);
     i2->set_ypos(y);
     i2->set_type(t);
-    ui->specialEffect2->setPixmap(*icons[t]);
+    ui->specialEffect2->setPixmap(icons[t]);
     ui->specialEffect2->setGeometry(x,y,70, 70);
     ui->specialEffect2->show();
 }
@@ -1156,37 +1130,16 @@ void GameFrame2::release_effect(Player* p, specialIcon* i){
         p->set_ghost(true);
         if (p->get_id()==1){
             ui->icon_4->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_4,SLOT(hide()));
-           // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_4,SLOT(hide()));
+            hide_status_icon(ui->icon_4, 10000);
         }
         else{
             ui->icon_10->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_10,SLOT(hide()));
-          //  connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_10,SLOT(hide()));
-
+            hide_status_icon(ui->icon_10, 10000);
         }
 
         QTimer* timer = new QTimer(this);
         timer->callOnTimeout(end_ghost(*p));
-        // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-        timer->setSingleShot(true);
-        timer->start(10000);
-        QPair<QTimer*,int> pair(timer,0);
-        ss_timers.push_back(pair);
-        //QTimer::singleShot(10000, end_ghost(*p));
-
+        start_ss_timer(timer, 10000);
         repaint();
     }
     else if (n == 3){
@@ -1210,36 +1163,15 @@ void GameFrame2::release_effect(Player* p, specialIcon* i){
 
         if (p->get_id()==1){
             ui->icon_5->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_5,SLOT(hide()));
-            // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_5,SLOT(hide()));
+            hide_status_icon(ui->icon_5, 10000);
         }
         else{
             ui->icon_11->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_11,SLOT(hide()));
-            // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_11,SLOT(hide()));
-
+            hide_status_icon(ui->icon_11, 10000);
         }
         QTimer* timer = new QTimer(this);
         timer->callOnTimeout(end_push(*p));
-        // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-        timer->setSingleShot(true);
-        timer->start(10000);
-        QPair<QTimer*,int> pair(timer,0);
-        ss_timers.push_back(pair);
-        //QTimer::singleShot(10000, end_push(*p));
-
+        start_ss_timer(timer, 10000);
     }
     else if(n == 5){
         // reverse
@@ -1247,36 +1179,15 @@ void GameFrame2::release_effect(Player* p, specialIcon* i){
 
         if (p->get_id()==1){
             ui->icon_6->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_6,SLOT(hide()));
-            // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_6,SLOT(hide()));
+            hide_status_icon(ui->icon_6, 10000);
         }
         else{
             ui->icon_13->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_13,SLOT(hide()));
-            // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_13,SLOT(hide()));
-
+            hide_status_icon(ui->icon_13, 10000);
         }
         QTimer* timer = new QTimer(this);
         timer->callOnTimeout(reverse_dir(*p));
-        // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-        timer->setSingleShot(true);
-        timer->start(10000);
-        QPair<QTimer*,int> pair(timer,0);
-        ss_timers.push_back(pair);
-        //QTimer::singleShot(10000, reverse_dir(*p));
-
+        start_ss_timer(timer, 10000);
     }
     else if(n== 6){
         // shield
@@ -1284,35 +1195,15 @@ void GameFrame2::release_effect(Player* p, specialIcon* i){
 
         if (p->get_id()==1){
             ui->icon_7->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_7,SLOT(hide()));
-            // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_7,SLOT(hide()));
+            hide_status_icon(ui->icon_7, 10000);
         }
         else{
             ui->icon_14->show();
-            QTimer* timer = new QTimer(this);
-            connect(timer,SIGNAL(timeout()),ui->icon_14,SLOT(hide()));
-            // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-            timer->setSingleShot(true);
-            timer->start(10000);
-            QPair<QTimer*,int> pair(timer,0);
-            ss_timers.push_back(pair);
-            //QTimer::singleShot(10000,ui->icon_14,SLOT(hide()));
-
+            hide_status_icon(ui->icon_14, 10000);
         }
         QTimer* timer = new QTimer(this);
         timer->callOnTimeout(end_shield(*p));
-        // connect(timer,SIGNAL(timeout()),this,SLOT(remove_dead_timers()));
-        timer->setSingleShot(true);
-        timer->start(10000);
-        QPair<QTimer*,int> pair(timer,0);
-        ss_timers.push_back(pair);
-        //QTimer::singleShot(10000, end_shield(*p));
+        start_ss_timer(timer, 10000);
     }
     else if(n==7){
         //mine
@@ -1330,27 +1221,6 @@ void GameFrame2::release_effect(Player* p, specialIcon* i){
     else return;
 }
 
-/**
- * @brief GameFrame2::push_graphics  pushes bomb in direction dir by one block, then calls repaint.
- * Position validity is checked by caller.
- * @param b The bomb being pushed
- * @param dir The direction the bomb is being pushed
- */
-
-void GameFrame2::push_graphics::operator()(){
-    //Creates a temp player to use future_position function, then set bomb position
-    Player* temp = new Player(0,&parent); //temp player
-    temp->set_xpos(b->getxpos());
-    temp->set_ypos(b->getypos());
-    QPair<int, int> future_pos = parent.future_position(temp,d);
-    b->setxpos(future_pos.first);
-    b->setypos(future_pos.second);
-
-    //update bombgraphics position
-    b->bombgraphics->move(future_pos.first,future_pos.second);
-    parent.repaint();
-}
-
 void GameFrame2::push_bombAt(Player* p, const int& dir){
     QPair<int, int> future_pos = future_position(p,dir);
     int xpos=future_pos.first;
@@ -1364,16 +1234,14 @@ void GameFrame2::push_bombAt(Player* p, const int& dir){
     //do bomb graphics
     Bomb* temp = hasBomb(p,dir);
     if (temp!=nullptr){
-        for (int k=1;k<=dist;k++){
+        for (int k=1;k<=dist;k++)
             QTimer::singleShot(k*10,this,push_graphics(*this, temp, dir));
-        }
-
     }
 }
 
 void GameFrame2::end_game(Player* p){
     if(p->get_id() == 2){
-        ui->winningPlayer->setPixmap(*playermaps[0]);
+        ui->winningPlayer->setPixmap(playermaps[0]);
         ui->gamefield->setCurrentIndex(0);
     }
     else{
@@ -1381,11 +1249,10 @@ void GameFrame2::end_game(Player* p){
             ui->gamefield->setCurrentIndex(2);
         }
         else {
-            ui->winningPlayer->setPixmap(*playermaps[1]);
+            ui->winningPlayer->setPixmap(playermaps[1]);
             ui->gamefield->setCurrentIndex(0);
         }
     }
-
 
     //PAUSE GAME
     paused = true;
@@ -1395,30 +1262,83 @@ void GameFrame2::end_game(Player* p){
 }
 
 
-void GameFrame2::on_pushButton_clicked()
-{
+void GameFrame2::on_pushButton_clicked(){
     hide();
     emit quit_pressed();
 }
 
-void GameFrame2::on_pushButton_2_clicked()
-{
+void GameFrame2::on_pushButton_2_clicked(){
     hide();
     emit quit_pressed();
 }
 
+void GameFrame2::on_bgm_slider_valueChanged(int value){emit bgm_vol_changed(value);}
 
-void GameFrame2::on_bgm_slider_valueChanged(int value)
-{
-    emit bgm_vol_changed(value);
-}
-
-
-
-void GameFrame2::on_effects_slider_valueChanged(int value)
-{
+void GameFrame2::on_effects_slider_valueChanged(int value){
     icon_sound->setVolume(value);
     explosion_sound->setVolume(value);
     mine_sound->setVolume(value);
     emit effects_vol_changed(value);
+}
+
+/****************nested class member functions****************/
+/**
+ * @brief GameFrame2::deactivateMine::operator ()
+ * change status of mine of the passed player, updates ui and graph
+ * called when mine expires
+ */
+void GameFrame2::deactivateMine::operator()(){
+    p->mine->set_activated(false);
+    p->mine->set_placed(false);
+
+    //hide icon of correct player
+    if (p->get_id()==1){
+        parent.ui->icon_8->hide();
+    }
+    else{
+        parent.ui->icon_16->hide();
+    }
+    //if not placed in right or bottom corner, add edge to the graph
+    if(p->mine->get_xpos()/70 != 9) add_edge(parent.adj, p->mine->get_ypos()/7 + p->mine->get_xpos()/70, p->mine->get_ypos()/7 + p->mine->get_xpos()/70 + 1);
+    if(p->mine->get_ypos()/70 != 9) add_edge(parent.adj, p->mine->get_ypos()/7 + p->mine->get_xpos()/70, (p->mine->get_ypos()/70 + 1)* 10 + p->mine->get_xpos()/70);
+
+}
+
+/**
+ * @brief GameFrame2::endFrozen::operator ()
+ * changes freeze status of frozen player and update graphics
+ */
+void GameFrame2::endFrozen::operator()(){
+    //checks whether players are frozen
+    if(parent.p1->if_frozen()){
+        parent.p1->become_frozen(false);
+        parent.ui->Player_1->setStyleSheet("QLabel{background-image:url(:/gamefield_graphics/t.png)}");
+    }
+
+    if(parent.p2->if_frozen()){
+        parent.p2->become_frozen(false);
+        parent.ui->Player_2->setStyleSheet("QLabel{background-image:url(:/gamefield_graphics/t.png)}");
+    }
+
+}
+
+/**
+ * @brief GameFrame2::push_graphics - pushes bomb passed to functor in direction d by one block, then calls repaint.
+ * Position validity is checked by caller.
+ * uses a temporary player object to use GameFrame2::future_position
+ */
+
+void GameFrame2::push_graphics::operator()(){
+    //Creates a temp player to use future_position function, then set bomb position
+    Player* temp = new Player(0,&parent); //temp player
+    temp->set_xpos(b->getxpos());
+    temp->set_ypos(b->getypos());
+    QPair<int, int> future_pos = parent.future_position(temp,d);
+    b->setxpos(future_pos.first);
+    b->setypos(future_pos.second);
+    delete temp;
+
+    //update bomb graphics
+    b->bombgraphics->move(future_pos.first,future_pos.second);
+    parent.repaint();
 }

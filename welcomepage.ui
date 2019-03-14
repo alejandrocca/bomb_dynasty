@@ -30,7 +30,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="res.qrc">
-    <normaloff>:/gamefield_graphics/bomb.png</normaloff>:/gamefield_graphics/bomb.png</iconset>
+    <normaloff>:/gamefield_graphics/bombed.png</normaloff>:/gamefield_graphics/bombed.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>

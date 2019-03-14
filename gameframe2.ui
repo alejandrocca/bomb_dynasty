@@ -31,6 +31,10 @@
   <property name="windowTitle">
    <string>Bomb Dynasty</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/gamefield_graphics/bombed.png</normaloff>:/gamefield_graphics/bombed.png</iconset>
+  </property>
   <property name="autoFillBackground">
    <bool>true</bool>
   </property>
