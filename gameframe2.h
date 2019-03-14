@@ -25,11 +25,12 @@ class GameFrame2 : public QWidget
     Q_OBJECT
 
 public:
-    // Constructor and destructor
+    // Constructor, Destructor and KeyPressEvent
     explicit GameFrame2(const bool& twoplayer, const int& b_volume, const int& e_volume, QWidget *parent = nullptr);
     ~GameFrame2() override;
-
     void keyPressEvent(QKeyEvent* event) override;
+
+    // Access to design mode
     Ui::GameFrame2 *ui;
 
 
