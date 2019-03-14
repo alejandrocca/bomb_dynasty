@@ -4,10 +4,10 @@
  * @brief add_edge
  *        adds an unweighted doubly linked edge to graph
  * @param <vector<int>> graph   - graph to add edge to
- *        <int> s               - source node
- *        <int> d               - destination node
+ *        <const int&> s        - source node
+ *        <const int&> d        - destination node
  */
-void add_edge(vector<int> graph[], int s, int d)
+void add_edge(vector<int> graph[], const int& s, const int& d)
 {
     graph[s].push_back(d);
     graph[d].push_back(s);
@@ -17,10 +17,10 @@ void add_edge(vector<int> graph[], int s, int d)
  * @brief delete_edge
  *        deletes an edge to graph for both directions
  * @param <vector<int>> graph   - graph to delete edge from
- *        <int> s               - source node
- *        <int> d               - destination node
+ *        <const int&> s        - source node
+ *        <const int&> d        - destination node
  */
-void delete_edge(vector<int> graph[], int s, int d)
+void delete_edge(vector<int> graph[], const int& s, const int& d)
 {
     std::vector<int>::iterator it = std::find(graph[s].begin(),graph[s].end(), d);
     if (it != graph[s].end()){
@@ -38,13 +38,13 @@ void delete_edge(vector<int> graph[], int s, int d)
 /**
  * @brief dijkstra
  * @param <vector<int>> graph[]     - graph to traverse
- *        <int> s                   - source node
- *        <int> d                   - destination node
+ *        <const int&> s            - source node
+ *        <const int&> d            - destination node
  *        <int> pred[]              - array to store path
  *        <int> dist[]              - array to store distance
  * @return <bool>                   - true if source and destination nodes are connected; false otherwise
  */
-bool dijkstra(vector<int> graph[], int s, int d, int pred[], int dist[]){
+bool dijkstra(vector<int> graph[], const int& s, const int& d, int pred[], int dist[]){
 
 
     // Preparation of containers
@@ -68,10 +68,13 @@ bool dijkstra(vector<int> graph[], int s, int d, int pred[], int dist[]){
 
     // Dijkstra's Algorithm
     while (!l.empty()) {
+        // traverse thru all nodes in graph: tracked with index i
         int i = l.front();
         l.pop_front();
         for (size_t j = 0; j < graph[i].size(); ++j) {
+            // for the jth node that the ith node is connected to:
             if (visited[graph[i][j]] == false) {
+                // if node hasn't been traversed:
                 visited[graph[i][j]] = true;
                 dist[graph[i][j]] = dist[i] + 1;
                 pred[graph[i][j]] = i;
@@ -89,10 +92,10 @@ bool dijkstra(vector<int> graph[], int s, int d, int pred[], int dist[]){
 
 /**
  * @brief ShortestPath
- * @param vector<int> graph[], <int> s, <int> d
+ * @param vector<int> graph[], <const int&> s, <const int&> d
  * @return vector<int> path - shortest path from s to d on graph
  */
-vector<int> ShortestPath(vector<int> graph[],int s, int d){
+vector<int> ShortestPath(vector<int> graph[], const int& s, const int& d){
     // Preparation of Containers
     vector<int> path;
     int pred[100], dist[100];
@@ -110,6 +113,7 @@ vector<int> ShortestPath(vector<int> graph[],int s, int d){
         int i = d;
         path.push_back(i);
         while (pred[i] != -1) {
+            // construct path by pushing back each preceeding node stored in pred[]
             path.push_back(pred[i]);
             i = pred[i];
         }

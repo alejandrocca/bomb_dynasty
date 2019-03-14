@@ -14,12 +14,12 @@ using std::list;
 
 // Detailed annotations in cpp file
 
-void add_edge(vector<int> graph[], int s, int d);
+void add_edge(vector<int> graph[], const int& s, const int& d);
 
-void delete_edge(vector<int> graph[], int s, int d);
+void delete_edge(vector<int> graph[], const int& s, const int& d);
 
-bool dijkstra(vector<int> graph[], int s, int d, int pred[], int dist[]);
+bool dijkstra(vector<int> graph[], const int& s, const int& d, int pred[], int dist[]);
 
-vector<int> ShortestPath(vector<int> graph[],int s, int d);
+vector<int> ShortestPath (vector<int> graph[], const int& s, const int& d);
 
 #endif // GRAPH_H
