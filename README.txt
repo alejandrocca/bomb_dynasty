@@ -11,7 +11,7 @@ This game is not for commercial usage.
 
 System Requirements:
 -----------------------
-Must be run with Qt 5.12.0 compiler or higher (check current version in Project->Build & Run). Works best with mac OS.
+Must be run with Qt 5.12.0 compiler or higher (check current version in Project->Build & Run). Please disable Shadow Build in Projects tab for the correct UI build. Optimized for mac OS.
 
 Game Description:
 -----------------------

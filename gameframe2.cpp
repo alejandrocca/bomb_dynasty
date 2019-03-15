@@ -737,12 +737,8 @@ void GameFrame2::npc_moves(){
                     QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier);
                     QCoreApplication::postEvent (this, event);
                 }
-
             }
-
         }
-
-
         else{ // if no bomb is near by: find shortest path to Player 1
             int pc_loc = p1->get_ypos()/7+p1->get_xpos()/70;
             vector<int> path = ShortestPath(adj, pc_loc, npc_loc);
@@ -790,10 +786,8 @@ void GameFrame2::npc_moves(){
 
             }
         }
-        }
+    }
 }
-
-
 
 /**
  * @brief GameFrame2::set_double_player
@@ -805,7 +799,6 @@ void GameFrame2::npc_moves(){
 void GameFrame2::set_double_player(const bool& a){
     double_player_mode=a;
 }
-
 
 /**
  * @brief GameFrame2::on_quit_game_clicked
@@ -826,7 +819,6 @@ void GameFrame2::on_quit_game_clicked()
 void GameFrame2::toggle_menu(){
     ui->stackedWidget->setCurrentIndex(paused);
 }
-
 
 /**
  * @brief GameFrame2::place_bomb
