@@ -2075,7 +2075,7 @@ font: 11pt &quot;Fixedsys&quot;;</string>
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>241</width>
+       <width>191</width>
        <height>21</height>
       </rect>
      </property>
@@ -2090,6 +2090,31 @@ font: 11pt &quot;Fixedsys&quot;;</string>
       <set>Qt::AlignBottom|Qt::AlignHCenter</set>
      </property>
     </widget>
+    <widget class="QLabel" name="about">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>520</y>
+       <width>401</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/t.png);
+font: 11pt &quot;Fixedsys&quot;;</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;About this game:&lt;/span&gt;&lt;br/&gt;The mechanic of this game is derived from &amp;quot;Bomberman&amp;quot;,&lt;br/&gt;originally released in 1987 by Hudson Soft.&lt;br/&gt;The background music used is Five Armies by The Descent.&lt;br/&gt;We do not own the original game idea nor the background music.&lt;br/&gt;All credits belong to original creators.&lt;br/&gt;This game is not for commercial usage.&lt;br/&gt;We reserve the right of interpretation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+     </property>
+    </widget>
+    <zorder>quit_game</zorder>
+    <zorder>gridLayoutWidget_3</zorder>
+    <zorder>gridLayoutWidget_2</zorder>
+    <zorder>about</zorder>
+    <zorder>label_29</zorder>
    </widget>
   </widget>
  </widget>
