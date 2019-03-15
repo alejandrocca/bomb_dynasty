@@ -8,7 +8,7 @@
  * sets starting position to bottom left corner if player id=1
  * sets starting position to top right corner if player id=2
  */
-Player::Player(int i, GameFrame2* g):id(i), xpos(0), ypos(630), game(g)
+Player::Player(int i, GameFrame2* g):game(g), id(i), xpos(0), ypos(630)
 {
     //if second player, start on top right corner
     if (id == 1){
@@ -28,13 +28,15 @@ Player::Player(int i, GameFrame2* g):id(i), xpos(0), ypos(630), game(g)
 
 }
 
+/**
+ * @brief Player::~Player
+ * Destructor of Player object
+ */
 Player::~Player()
 {
     delete mine;
     mine=nullptr;
 }
-
-
 
 /**
  * @brief Player::get_id
@@ -67,42 +69,34 @@ int Player::get_speed() const{
 }
 
 /**
- * The following 4 functions adjusts player position
- * position is checked for validity by gameframe before passed to player
+ * @brief Player::move
+ * @param <const int&> dir
+ * Move player to assigned direction if future position not out of bound
  */
-
-void Player::move_left(){if(xpos-get_speed()>=0 && xpos-get_speed()<=630) xpos-=get_speed();}
-void Player::move_right(){if(xpos+get_speed()>=0 && xpos+get_speed()<=630) xpos+=get_speed();}
-void Player::move_up(){if(ypos-get_speed()>=0 && ypos-get_speed()<=630) ypos-=get_speed();}
-void Player::move_down(){if(ypos+get_speed()>=0 && ypos+get_speed()<=630) ypos+=get_speed();}
-
 void Player::move(const int& dir){
     if(dir == LEFT)
-        move_left();
+        if(xpos-get_speed()>=0 && xpos-get_speed()<=630) xpos-=get_speed();
     if(dir == RIGHT)
-        move_right();
+        if(xpos+get_speed()>=0 && xpos+get_speed()<=630) xpos+=get_speed();
     if(dir == UP)
-        move_up();
+        if(ypos-get_speed()>=0 && ypos-get_speed()<=630) ypos-=get_speed();
     if(dir == DOWN)
-        move_down();
+       if(ypos+get_speed()>=0 && ypos+get_speed()<=630) ypos+=get_speed();
 }
 
-
-
+/**
+ * @brief Player::it
+ * @return <vector<Bomb>::iterator> iterator to the first bomb that is active and not placed
+ */
 vector<Bomb>::iterator Player::it(){
-    vector<Bomb>::iterator iter = std::find_if(bombs.begin(), bombs.end(), is_active);
-    while(iter != bombs.end()){
-        if ((*iter).if_placed() == false){
-            return iter;
+    vector<Bomb>::iterator iter = std::find_if(bombs.begin(), bombs.end(), is_active); // finds first active bomb
+    while(iter != bombs.end()){ // if active bomb is found
+        if ((*iter).if_placed() == false){ // if bomb hasn't been placed
+            return iter; // return iterator to that bomb
         }
-        else {
-            iter = std::find_if(iter +1, bombs.end(), is_active);
+        else { // if it has been placed
+            iter = std::find_if(iter +1, bombs.end(), is_active); // find next active bomb
         }
     }
-    return iter;
+    return iter; // return nullptr if not found
 }
-
-//NPC::NPC(GameFrame2* g) : Player(2,g) {
-//};
-
-

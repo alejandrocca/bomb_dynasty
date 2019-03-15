@@ -68,10 +68,13 @@ bool dijkstra(vector<int> graph[], int s, int d, int pred[], int dist[]){
 
     // Dijkstra's Algorithm
     while (!l.empty()) {
+        // traverse thru all nodes in graph: tracked with index i
         int i = l.front();
         l.pop_front();
         for (size_t j = 0; j < graph[i].size(); ++j) {
+            // for the jth node that the ith node is connected to:
             if (visited[graph[i][j]] == false) {
+                // if node hasn't been traversed:
                 visited[graph[i][j]] = true;
                 dist[graph[i][j]] = dist[i] + 1;
                 pred[graph[i][j]] = i;
@@ -110,10 +113,10 @@ vector<int> ShortestPath(vector<int> graph[],int s, int d){
         int i = d;
         path.push_back(i);
         while (pred[i] != -1) {
+            // construct path by pushing back each preceeding node stored in pred[]
             path.push_back(pred[i]);
             i = pred[i];
         }
-
         return path;
     }
 }

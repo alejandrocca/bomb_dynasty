@@ -20,6 +20,16 @@ namespace Ui {
 class GameFrame2;
 }
 
+/**
+ * @brief The GameFrame2 class
+ * @param of construction:
+ *        <const bool&> twoplayer - 0 single or 1 double player mode
+ *        <const int&> b_volume - bgm volume
+ *        <const int&> e_volume - effect sound volume
+ *        <QWidget*> parent - inheritance from QWidget
+ *
+ * The main gameframe class that inherits from QWidget. Keeps track of both players and bombs they own as well as special icons.
+ */
 class GameFrame2 : public QWidget
 {
     Q_OBJECT
@@ -37,6 +47,11 @@ public:
         virtual void operator()()=0;
         GameFrame2& parent;
     };
+
+    /**
+     * @brief The explodeBomb class
+     * @param <GameFrame2&> parent, <Bomb*> b
+     */
     class explodeBomb:public GameEvent{
         Bomb* b;
     public:
@@ -44,12 +59,20 @@ public:
         virtual void operator()(){emit parent.explode_timer_out(b);}
     };
 
+    /**
+     * @brief The endFrozen class
+     * @param <GameFrame2&> parent
+     */
     class endFrozen:public GameEvent{
     public:
         endFrozen(GameFrame2& parent): GameEvent(parent){}
         virtual void operator()();
     };
 
+    /**
+     * @brief The deactivateMine class
+     * @param <GameFrame2&> parent, <Player*> p
+     */
     class deactivateMine:public GameEvent{
         Player* p;
     public:
@@ -57,6 +80,11 @@ public:
         virtual void operator()();
     };
 
+
+    /**
+     * @brief The clearBomb class
+     * @param <GameFrame2&> parent, <Bomb*> b
+     */
     class clearBomb:public GameEvent{
         Bomb* b;
     public:
@@ -64,6 +92,11 @@ public:
         virtual void operator()(){emit parent.clear_timer_out(b);}
     };
 
+
+    /**
+     * @brief The push_graphics class
+     * @param <GameFrame2&> parent, <Bomb*> b, <const int> d
+     */
     class push_graphics:public GameEvent{
         Bomb* b;
         const int d;
@@ -92,8 +125,8 @@ public:
     void keyPressEvent(QKeyEvent* event) override;
     void player_moves(Player* p, const int& dir);
     void push_bombAt(Player* p, const int& dir);
-    void hide_status_icon(QLabel* icon, int time);
-    void start_ss_timer(QTimer* t, int time);
+    void hide_status_icon(QLabel* icon, const int& time);
+    void start_ss_timer(QTimer* t, const int& time);
 
     /********mutator********/
     void set_double_player(const bool&);
@@ -192,13 +225,12 @@ public slots:
     void on_quit_game_clicked();
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
-    void on_bgm_slider_valueChanged(int value);
-    void on_effects_slider_valueChanged(int value);
+    void on_bgm_slider_valueChanged(const int& value);
+    void on_effects_slider_valueChanged(const int& value);
 
     //game routine maintenance slots
     void drop_i1();
     void drop_i2();
-    //void npc_key_gen();
     void npc_moves();
     void remove_dead_timers();
 
