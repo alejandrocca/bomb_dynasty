@@ -10,6 +10,7 @@
 #define UI_GAMEFRAME2_H
 
 #include <QtCore/QVariant>
+#include <QtGui/QIcon>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
@@ -133,6 +134,7 @@ public:
     QLabel *label_27;
     QLabel *label_28;
     QLabel *label_29;
+    QLabel *about;
 
     void setupUi(QWidget *GameFrame2)
     {
@@ -146,6 +148,9 @@ public:
         GameFrame2->setSizePolicy(sizePolicy);
         GameFrame2->setMinimumSize(QSize(1000, 750));
         GameFrame2->setMaximumSize(QSize(1000, 750));
+        QIcon icon1;
+        icon1.addFile(QString::fromUtf8(":/gamefield_graphics/bombed.png"), QSize(), QIcon::Normal, QIcon::Off);
+        GameFrame2->setWindowIcon(icon1);
         GameFrame2->setAutoFillBackground(true);
         stackedWidget = new QStackedWidget(GameFrame2);
         stackedWidget->setObjectName(QString::fromUtf8("stackedWidget"));
@@ -579,8 +584,8 @@ public:
         quit_game = new QPushButton(menu);
         quit_game->setObjectName(QString::fromUtf8("quit_game"));
         quit_game->setGeometry(QRect(10, 50, 161, 61));
-        quit_game->setStyleSheet(QString::fromUtf8("background-image:url(:/transparent.png);\n"
-"font: 11pt \"Fixedsys\";"));
+        quit_game->setStyleSheet(QString::fromUtf8("background-image:url(:/gamefield_graphics/transparent.png);\n"
+"font: 13pt \"Fixedsys\";"));
         gridLayoutWidget_3 = new QWidget(menu);
         gridLayoutWidget_3->setObjectName(QString::fromUtf8("gridLayoutWidget_3"));
         gridLayoutWidget_3->setGeometry(QRect(540, 60, 441, 321));
@@ -838,11 +843,21 @@ public:
 
         label_29 = new QLabel(menu);
         label_29->setObjectName(QString::fromUtf8("label_29"));
-        label_29->setGeometry(QRect(10, 0, 241, 21));
+        label_29->setGeometry(QRect(10, 0, 191, 21));
         label_29->setStyleSheet(QString::fromUtf8("background-image: url(:/t.png);\n"
 "font: 11pt \"Fixedsys\";"));
         label_29->setAlignment(Qt::AlignBottom|Qt::AlignHCenter);
+        about = new QLabel(menu);
+        about->setObjectName(QString::fromUtf8("about"));
+        about->setGeometry(QRect(590, 620, 401, 111));
+        about->setStyleSheet(QString::fromUtf8("font: 11pt \"Fixedsys\";"));
+        about->setAlignment(Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft);
         stackedWidget->addWidget(menu);
+        quit_game->raise();
+        gridLayoutWidget_3->raise();
+        gridLayoutWidget_2->raise();
+        about->raise();
+        label_29->raise();
 
         retranslateUi(GameFrame2);
 
@@ -998,6 +1013,7 @@ public:
         label_27->setText(QApplication::translate("GameFrame2", "Background music volume:", nullptr));
         label_28->setText(QApplication::translate("GameFrame2", "Sound Effects volume:", nullptr));
         label_29->setText(QApplication::translate("GameFrame2", "<html><head/><body><p><span style=\" color:#000000;\">Press Esc to return to game...</span></p></body></html>", nullptr));
+        about->setText(QApplication::translate("GameFrame2", "<html><head/><body><p><span style=\" font-size:14pt;\">About this game:</span><br/>The mechanic of this game is derived from &quot;Bomberman&quot;,<br/>originally released in 1987 by Hudson Soft.<br/>The background music used is Five Armies by The Descent.<br/>We do not own the original game idea nor the background music.<br/>All credits belong to original creators.<br/>This game is not for commercial usage.<br/>We reserve the right of interpretation.</p></body></html>", nullptr));
     } // retranslateUi
 
 };
