@@ -288,7 +288,7 @@ bool GameFrame2::hasObstacle(Player* p, const int& dir){
 
     /*evaluates to true (i.e. there is an obstacle) if:
      * is running out of bounds OR
-     * is running into an object that is NOT a player or icon
+     * is running into a wall
     */
     return (isOutOfBounds(future_xpos,future_ypos)||(hasWallObstacle&&(!hasPlayerObstacle)&&(!hasIconObstacle)));
 
