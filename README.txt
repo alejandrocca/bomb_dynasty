@@ -1,7 +1,9 @@
-# BombDynasty
+# BombDynasty - Xingjia Wang and Cindy Wang
 
 Disclaimer:
 -----------------------
+We pledge that we have neither given nor received unauthorized aid on this assignment.
+
 The mechanic of this game is derived from "Bomberman", originally released in 1987 by Hudson Soft. We do not own the original game idea.
 
 Background music: Five Armies - The Descent
@@ -11,7 +13,8 @@ This game is not for commercial usage.
 
 System Requirements:
 -----------------------
-Must be run with Qt 5.12.0 compiler or higher (check current version in Project->Build & Run). Please disable Shadow Build in Projects tab for the correct UI build. Optimized for mac OS.
+****IMPORTANT PLS READ****
+Correct compilation requires Qt 5.12.0 compiler or higher (check current version in Project->Build & Run). Please disable Shadow Build in Projects tab for the correct UI build. Initial build may take up to a few minutes, please be patient. Optimized for mac OS and Windows 10 with 100% resolution settings.
 
 Game Description:
 -----------------------
