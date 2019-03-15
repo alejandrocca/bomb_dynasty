@@ -50,9 +50,9 @@ Bomb::Bomb(GameFrame2* g, int x, int y) : game(g), xpos(x), ypos(y) {
 
 
 /**
- * @brief is_active
+ * @brief is_active predicate
  * @param <Bomb> bomb
- * @return <bool> if current bomb is activated
+ * @return <bool> true if current bomb is activated, false otherwise
  */
 bool is_active(const Bomb& bomb){
     return (bomb.if_activated());
