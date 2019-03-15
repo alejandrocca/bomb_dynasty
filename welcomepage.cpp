@@ -121,6 +121,7 @@ void WelcomePage::on_back_to_main_clicked()
  */
 void WelcomePage::on_start_game_clicked()
 {
+    delete game;
     game = new GameFrame2(double_player, backgroundmusic->volume(), sound_effect_vol);
 
     connect(game, SIGNAL(quit_pressed()), this, SLOT(show()));
