@@ -8,7 +8,7 @@
  * sets starting position to bottom left corner if player id=1
  * sets starting position to top right corner if player id=2
  */
-Player::Player(int i, GameFrame2* g) : game(g), id(i), xpos(0), ypos(630)
+Player::Player(int i, GameFrame2* g):id(i), xpos(0), ypos(630), game(g)
 {
     //if second player, start on top right corner
     if (id == 1){
@@ -28,13 +28,9 @@ Player::Player(int i, GameFrame2* g) : game(g), id(i), xpos(0), ypos(630)
 
 }
 
-/**
- * @brief Player::~Player
- * Destructor of Player object
- */
 Player::~Player()
 {
-    //delete mine;
+    delete mine;
     mine=nullptr;
 }
 
@@ -71,25 +67,28 @@ int Player::get_speed() const{
 }
 
 /**
- * @brief Player::move
- * @param <const int&> dir
- * Move player to assigned direction if future position not out of bound
+ * The following 4 functions adjusts player position
+ * position is checked for validity by gameframe before passed to player
  */
+
+void Player::move_left(){if(xpos-get_speed()>=0 && xpos-get_speed()<=630) xpos-=get_speed();}
+void Player::move_right(){if(xpos+get_speed()>=0 && xpos+get_speed()<=630) xpos+=get_speed();}
+void Player::move_up(){if(ypos-get_speed()>=0 && ypos-get_speed()<=630) ypos-=get_speed();}
+void Player::move_down(){if(ypos+get_speed()>=0 && ypos+get_speed()<=630) ypos+=get_speed();}
+
 void Player::move(const int& dir){
     if(dir == LEFT)
-        if(xpos-get_speed()>=0 && xpos-get_speed()<=630) xpos-=get_speed();
+        move_left();
     if(dir == RIGHT)
-        if(xpos+get_speed()>=0 && xpos+get_speed()<=630) xpos+=get_speed();
+        move_right();
     if(dir == UP)
-        if(ypos-get_speed()>=0 && ypos-get_speed()<=630) ypos-=get_speed();
+        move_up();
     if(dir == DOWN)
-       if(ypos+get_speed()>=0 && ypos+get_speed()<=630) ypos+=get_speed();
+        move_down();
 }
 
-/**
- * @brief Player::it
- * @return <vector<Bomb>::iterator> iterator to the first bomb that is active and not placed
- */
+
+
 vector<Bomb>::iterator Player::it(){
     vector<Bomb>::iterator iter = std::find_if(bombs.begin(), bombs.end(), is_active);
     while(iter != bombs.end()){
@@ -102,3 +101,8 @@ vector<Bomb>::iterator Player::it(){
     }
     return iter;
 }
+
+//NPC::NPC(GameFrame2* g) : Player(2,g) {
+//};
+
+

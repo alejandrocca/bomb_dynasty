@@ -1,9 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <iostream>     //std::cout
-#include <vector>       //std::vector
-#include <algorithm>    //std::find_if, std::find
+#include <iostream>
+#include <vector>
+#include <algorithm>
 #include "bomb.h"
 
 using std::vector;
@@ -50,6 +50,11 @@ public:
     void powerup(){bombpower++;}
     void bombplus(){bombcount++;}
     void increase_speed(){speed *= 2;}
+    void move_left();
+    void move_right();
+    void move_up();
+    void move_down();
+    void move(const int& dir);
     void set_xpos(const int& x){xpos = x;}
     void set_ypos(const int& y){ypos = y;}
     void set_reverse(const bool& r){reverse = r;}
@@ -60,16 +65,15 @@ public:
     void set_freeze(const bool& f){freeze = f;}
     void become_frozen(const bool& f){frozen = f;}
 
-    // Helper functions
-    void move(const int& dir);
 
-    // Access to gamefield interface
     GameFrame2* game;
 
-    // Each player owns a vector of at most 3 bombs and a mine
+
     vector<Bomb> bombs;
     vector<Bomb>::iterator it();
     Mine* mine;
+    //check written file for screenshots of welcome page, diagram of inheritance,
+    //and detailed descriptions of each class
 
 private:
     const int id;

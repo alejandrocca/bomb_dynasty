@@ -25,33 +25,81 @@ class GameFrame2 : public QWidget
     Q_OBJECT
 
 public:
-    // Constructor, Destructor and KeyPressEvent
+    /*******constructors and destructors********/
     explicit GameFrame2(const bool& twoplayer, const int& b_volume, const int& e_volume, QWidget *parent = nullptr);
     ~GameFrame2() override;
-    void keyPressEvent(QKeyEvent* event) override;
 
-    // Access to design mode
-    Ui::GameFrame2 *ui;
+    /********GameFrame2 public nested functors********/
+    class GameEvent{
+    public:
+        GameEvent(GameFrame2& parent): parent(parent){}
+        virtual ~GameEvent(){}
+        virtual void operator()()=0;
+        GameFrame2& parent;
+    };
+    class explodeBomb:public GameEvent{
+        Bomb* b;
+    public:
+        explodeBomb(GameFrame2& parent, Bomb* bomb): GameEvent(parent), b(bomb){}
+        virtual void operator()(){emit parent.explode_timer_out(b);}
+    };
 
+    class endFrozen:public GameEvent{
+    public:
+        endFrozen(GameFrame2& parent): GameEvent(parent){}
+        virtual void operator()();
+    };
 
-    // Helper functions
+    class deactivateMine:public GameEvent{
+        Player* p;
+    public:
+        deactivateMine(GameFrame2& parent, Player* p) : GameEvent(parent), p(p){}
+        virtual void operator()();
+    };
+
+    class clearBomb:public GameEvent{
+        Bomb* b;
+    public:
+        clearBomb(GameFrame2& parent,Bomb* bomb): GameEvent(parent), b(bomb){}
+        virtual void operator()(){emit parent.clear_timer_out(b);}
+    };
+
+    class push_graphics:public GameEvent{
+        Bomb* b;
+        const int d;
+    public:
+        push_graphics(GameFrame2& parent, Bomb* bomb, const int& dir):GameEvent(parent), b(bomb), d(dir){}
+        virtual void operator()();
+    };
+
+    /*******helper functions********/
     QPair<int,int> future_position(Player* p, const int& dir);
-    bool hasObstacle(Player* p, const int& dir); //for player movement or bomb placement
-    bool isNear(const Bomb& b) const;
+
+    //for obstacle checking
+    bool hasObstacle(Player* p, const int& dir);
     Bomb* hasBomb(Player* p, const int& dir);
+
+    //for AI calculation
+    bool isNear(const Bomb& b) const;
+
+    //for bomb explosion, uses obstacle checkers
     int explodeDist(Bomb* b, const int& dir);
-    void push_bombAt(Player* p, const int& dir);
+
+    //for icon placement
+    int rand_pos(){return 70*(rand()%10);}
+
+    //for handling events
+    void keyPressEvent(QKeyEvent* event) override;
     void player_moves(Player* p, const int& dir);
+    void push_bombAt(Player* p, const int& dir);
+    void hide_status_icon(QLabel* icon, int time);
+    void start_ss_timer(QTimer* t, int time);
+
+    /********mutator********/
     void set_double_player(const bool&);
 
-    /**
-     * @brief rand_pos
-     * @return <int> - generates a random position in gamefield
-     */
-    int rand_pos(){
-        return 70*(rand()%10);
-    }
-
+    /********public member********/
+    Ui::GameFrame2 *ui;
 
 public:
     signals:
@@ -131,7 +179,6 @@ public:
      */
     void clear_timer_out(Bomb* b);
 
-
     /**
      * emitted whenever Player p is attacked (by bomb or mine)
      * connected to  end_game(p)
@@ -140,145 +187,94 @@ public:
     void player_attacked(Player* p);
 
 public slots:
+    //general game input maintenance slots
     void toggle_menu();
+    void on_quit_game_clicked();
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
+    void on_bgm_slider_valueChanged(int value);
+    void on_effects_slider_valueChanged(int value);
+
+    //game routine maintenance slots
     void drop_i1();
     void drop_i2();
-    void release_effect(Player* p, specialIcon* i);
-    void place_bomb(Player* p);
-    void freeze_around(Player* p);
+    //void npc_key_gen();
+    void npc_moves();
+    void remove_dead_timers();
+
+    //bomb slots
     void bomb_explodes(Bomb* b);
     void start_timer(Bomb* b);
     void start_timer2(Bomb* b);
     void clear_bomb(Bomb* b);
-    void end_game(Player* p);
+
+    //player slots
+    void release_effect(Player* p, specialIcon* i);
     void place_mine(Player* p);
-    void on_quit_game_clicked();
-    void on_pushButton_clicked();
-    void on_pushButton_2_clicked();
-    void on_bgm_slider_valueChanged(const int& value);
-    void on_effects_slider_valueChanged(const int& value);
-    void npc_moves();
-    void remove_dead_timers();
+    void place_bomb(Player* p);
+    void freeze_around(Player* p);
+    void end_game(Player* p);
 
 private:
-    bool double_player_mode=false;
-    bool paused = false;
+    //media players
     QMediaPlayer* icon_sound;
     QMediaPlayer* explosion_sound;
     QMediaPlayer* mine_sound;
+
+    //game states
+    bool double_player_mode=false;
+    bool paused = false;
+
+    //game dynamic objects
     Player* p1 = nullptr;
     Player* p2 = nullptr;
     specialIcon* i1 = nullptr;
     specialIcon* i2 = nullptr;
 
-    // Timer and timer functions
-    QTimer* timer1=nullptr; //drop icon timers
-    QTimer* timer2=nullptr;
-    QTimer* removeTimer = nullptr;
+    //timer and timer functions
+    QTimer* drop_icon_timer1=nullptr;
+    QTimer* drop_icon_timer2=nullptr;
+    QPair<QTimer*, int> resume_icon_timer1; //first = timer to correct drop_icon_timer timeouts after pause
+    QPair<QTimer*, int> resume_icon_timer2; //second = time remaining for drop_icon_timer when paused
+    vector< QPair<QTimer*,int> > ss_timers; //stores all the rest of pausable single shot timers
     QTimer* npcTimer = nullptr;
-    int timer1_time_remaining = 0;
-    int timer2_time_remaining = 0;
-    vector< QPair<QTimer*,int> > ss_timers;
     void pause_icon_timers();
     void resume_icon_timers();
     void pause_ss_timers();
     void resume_ss_timers();
 
-    // Graphics vectors
-    const std::vector<QPixmap*> icons = {
-        new QPixmap(":/gamefield_graphics/icons/bomb+1.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/freeze.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/ghost.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/powerup.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/push.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/reverse.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/shield.jpg"),
-        new QPixmap(":/gamefield_graphics/icons/mine.jpg")
+    /********Pixmap graphics for dynamic objects in game field********/
+    const std::vector<QPixmap> icons = {
+        QPixmap(":/gamefield_graphics/icons/bomb+1.jpg"),
+        QPixmap(":/gamefield_graphics/icons/freeze.jpg"),
+        QPixmap(":/gamefield_graphics/icons/ghost.jpg"),
+        QPixmap(":/gamefield_graphics/icons/powerup.jpg"),
+        QPixmap(":/gamefield_graphics/icons/push.jpg"),
+        QPixmap(":/gamefield_graphics/icons/reverse.jpg"),
+        QPixmap(":/gamefield_graphics/icons/shield.jpg"),
+        QPixmap(":/gamefield_graphics/icons/mine.jpg")
     };
 
-    const std::vector<QPixmap*> bombmaps = {
-        new QPixmap(":/gamefield_graphics/bomb.png"),
-        new QPixmap(":/gamefield_graphics/bombed.png"),
-        new QPixmap(":/gamefield_graphics/hbeffect.png"),
-        new QPixmap(":/gamefield_graphics/vbeffect.png"),
+    const std::vector<QPixmap> bombmaps = {
+        QPixmap(":/gamefield_graphics/bomb.png"),
+        QPixmap(":/gamefield_graphics/bombed.png"),
+        QPixmap(":/gamefield_graphics/hbeffect.png"),
+        QPixmap(":/gamefield_graphics/vbeffect.png"),
     };
 
-    const std::vector<QPixmap*> playermaps = {
-        new QPixmap(":/gamefield_graphics/p1.PNG"),
-        new QPixmap(":/gamefield_graphics/p2.PNG"),
+    const std::vector<QPixmap> playermaps = {
+        QPixmap(":/gamefield_graphics/p1.PNG"),
+        QPixmap(":/gamefield_graphics/p2.PNG"),
     };
 
+    //collection of wall QLabels to keep track of wall positions
     std::vector<QLabel*> walls;
 
-    // Graph array
+    //adjacency matrix
     vector<int>* adj;
 
-public:
-    // Functors
-    /**
-     * @brief The explodeBomb class
-     * @param <GameFrame2&> parent, <Bomb*> b
-     */
-    class explodeBomb{
-        GameFrame2& parent;
-        Bomb* b;
-    public:
-        explodeBomb(GameFrame2& parent, Bomb* bomb): parent(parent), b(bomb){}
-        void operator()(){emit parent.explode_timer_out(b);}
-    };
 
-    /**
-     * @brief The endFrozen class
-     * @param <GameFrame2&> parent
-     */
-    class endFrozen{
-        GameFrame2& parent;
-    public:
-        endFrozen(GameFrame2& parent): parent(parent){}
-        void operator()();
-    };
 
-    /**
-     * @brief The deactivateMine class
-     * @param <GameFrame2&> parent, <Player*> p
-     */
-    class deactivateMine{
-        GameFrame2& parent;
-        Player* p;
-    public:
-        deactivateMine(GameFrame2& parent, Player* p) : parent(parent), p(p){}
-        void operator()();
-    };
-
-    /**
-     * @brief The clearBomb class
-     * @param <GameFrame2&> parent, <Bomb*> b
-     */
-    class clearBomb{
-        GameFrame2& parent;
-        Bomb* b;
-    public:
-        clearBomb(GameFrame2& parent,Bomb* bomb): parent(parent), b(bomb){}
-        void operator()(){
-            emit parent.clear_timer_out(b);
-
-        }
-    };
-
-    /**
-     * @brief The push_graphics class
-     * @param <GameFrame2&> parent, <Bomb*> b, <const int> d
-     */
-    class push_graphics{
-        GameFrame2& parent;
-        Bomb* b;
-        const int d;
-    public:
-        push_graphics(GameFrame2& parent, Bomb* bomb, const int& dir):parent(parent), b(bomb), d(dir){}
-        void operator()();
-    };
-
-    // Friend class for access
     friend class Bomb;
 };
 

@@ -34,12 +34,6 @@ WelcomePage::~WelcomePage(){
     delete backgroundmusic;
 }
 
-/**
- * @brief WelcomePage::keyPressEvent
- * registers keypressevents
- * esc = goes back to main menu
- * @param event
- */
 void WelcomePage::keyPressEvent(QKeyEvent* event){
 
     if(event->key() == Qt::Key_Escape) {
@@ -48,66 +42,44 @@ void WelcomePage::keyPressEvent(QKeyEvent* event){
         update();
         QCoreApplication::processEvents();
     }
+
 }
 
 /**
  * @brief WelcomePage::on_welcomemenu_buttons_clicked
- * slot: enters setting page
+ * slot: next seven functions switch between pages on welcomepage ui stackedWidget
  */
+
 void WelcomePage::on_settings_button_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
 }
 
-/**
- * @brief WelcomePage::on_enter_game_clicked
- * slot: enters mode selection page
- */
 void WelcomePage::on_enter_game_clicked()
 {
     ui->stackedWidget->setCurrentIndex(2);
 }
 
-/**
- * @brief WelcomePage::on_help_clicked
- * slot: enters help page 1
- */
 void WelcomePage::on_help_clicked()
 {
     ui->stackedWidget->setCurrentIndex(3);
 }
 
-/**
- * @brief WelcomePage::on_next_page_clicked
- * slot: enters help page 2
- */
 void WelcomePage::on_next_page_clicked()
 {
     ui->stackedWidget->setCurrentIndex(4);
 }
 
-/**
- * @brief WelcomePage::on_back_to_main2_clicked
- * slot: backs up to main page
- */
 void WelcomePage::on_back_to_main2_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
 }
 
-/**
- * @brief WelcomePage::on_previous_page_clicked
- * slot: goes back to help page 1
- */
 void WelcomePage::on_previous_page_clicked()
 {
     ui->stackedWidget->setCurrentIndex(3);
 }
 
-/**
- * @brief WelcomePage::on_back_to_main_clicked
- * slot: backs up to main page
- */
 void WelcomePage::on_back_to_main_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
@@ -119,8 +91,10 @@ void WelcomePage::on_back_to_main_clicked()
  * hides welcomepage and shows game
  * connects quit button press signal of game to showing of welcomepage
  */
+
 void WelcomePage::on_start_game_clicked()
 {
+    delete game;
     game = new GameFrame2(double_player, backgroundmusic->volume(), sound_effect_vol);
 
     connect(game, SIGNAL(quit_pressed()), this, SLOT(show()));
@@ -134,67 +108,46 @@ void WelcomePage::on_start_game_clicked()
 
 /**
  * @brief WelcomePage::on_mode_selection_buttons_clicked
- * slot: sets play mode to single player
+ * slot: next two functions changes double_player member field to true or false
  */
+
 void WelcomePage::on_practicebutton_clicked()
 {
     double_player = false;
 }
 
-/**
- * @brief WelcomePage::on_doublebutton_clicked
- * slot: sets play mode to double player
- */
 void WelcomePage::on_doublebutton_clicked()
 {
     double_player = true;
 }
 
 /**
- * @brief WelcomePage::on_bgm_vol_valueChanged
- * @param <const int&> value on slider
- * slot: sets volume of bgm on backend
+ * @brief WelcomePage::on_vol_valueChanged
+ * @param value on slider
+ * slot: changes volume of media
  */
-void WelcomePage::on_bgm_vol_valueChanged(const int& value)
+
+void WelcomePage::on_bgm_vol_valueChanged(int value)
 {
     backgroundmusic->setVolume(value);
 }
 
-/**
- * @brief WelcomePage::on_effects_vol_valueChanged
- * @param <const int&> value
- * slot: sets volume of effect sounds on backend
- */
-void WelcomePage::on_effects_vol_valueChanged(const int& value)
+void WelcomePage::on_effects_vol_valueChanged(int value)
 {
     sound_effect_vol=value;
 }
 
-/**
- * @brief WelcomePage::on_backbutton_clicked
- * slot: backs up to main page
- */
 void WelcomePage::on_backbutton_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
 }
 
-/**
- * @brief WelcomePage::change_bgm_volume
- * @param <const int&> value
- * slot: sets volume of bgm on front end
- */
-void WelcomePage::change_bgm_volume(const int& value)
+void WelcomePage::change_bgm_volume(int value)
 {
     ui->bgm_vol->setValue(value);
 }
 
-/**
- * @brief WelcomePage::change_effects_volume
- * @param <const int&> value
- * slot: sets volume of effect sound on front end
- */
-void WelcomePage::change_effects_volume(const int& value)
+void WelcomePage::change_effects_volume(int value)
 {
     ui->effects_vol->setValue(value);
 }
