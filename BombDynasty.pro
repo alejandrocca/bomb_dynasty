@@ -41,7 +41,6 @@ HEADERS += \
     player.h \
     gameframe2.h \
     icon.h \
-    graph.h \
     graph.h
     
 
