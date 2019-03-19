@@ -11,6 +11,11 @@ We do not own the music. All rights belong to original composer.
 
 This game is not for commercial usage.
 
+Application Download for Windows:
+-----------------------
+
+Full Package Download Link: https://drive.google.com/open?id=1QpU3iuGrXFA10F5K6JxK8KlQDGpkUxmT
+
 System Requirements:
 -----------------------
 ****IMPORTANT PLS READ****
