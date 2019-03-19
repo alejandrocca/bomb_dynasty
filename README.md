@@ -1,7 +1,7 @@
 # BombDynasty - Xingjia Wang and Cindy Wang
 
 Disclaimer:
------------------------
+========================
 We pledge that we have neither given nor received unauthorized aid on this assignment.
 
 The mechanic of this game is derived from "Bomberman", originally released in 1987 by Hudson Soft. We do not own the original game idea.
@@ -12,9 +12,12 @@ We do not own the music. All rights belong to original composer.
 This game is not for commercial usage.
 
 Application Download for Windows:
------------------------
+========================
 
 Full Package Download Link: https://drive.google.com/open?id=1QpU3iuGrXFA10F5K6JxK8KlQDGpkUxmT
+
+Qt Description
+========================
 
 System Requirements:
 -----------------------
